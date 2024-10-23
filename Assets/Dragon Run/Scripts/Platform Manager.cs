@@ -8,8 +8,7 @@ public class PlatformManager : MonoBehaviour
     public GameObject[] obstaclePrefabs;  // 장애물 프리팹 배열
     public float platformSpeed = 5f;  // 플랫폼 이동 속도
     public float screenBoundary = 15f;  // 화면 밖으로 나가는 기준
-    public float distanceBetweenSpawns = 2f;  // 장애물 간 거리
-    public float spawnInterval = 3f;  // 스폰 간격
+    public float maxObstacleDistance = 10f;  // 장애물 간 최대 거리
     public float minObstacleDistance = 5f;  // 장애물 간 최소 거리
     public float speedIncreaseRate = 0.1f;  // 속도 증가율
     public float speedIncreaseInterval = 10f;  // 속도 증가 간격 (초 단위)
@@ -85,17 +84,24 @@ public class PlatformManager : MonoBehaviour
         {
             Debug.LogError("Spawn point is null for platform " + platformIndex);
             return;
-
-
-
         }
 
+        // 랜덤 장애물 선택
         GameObject randomObstaclePrefab = obstaclePrefabs[Random.Range(0, obstaclePrefabs.Length)];
-        float randomXOffset = Random.Range(-2f, 2f);
-        Vector3 spawnPosition = obstacleSpawnPoints[platformIndex].position + new Vector3(randomXOffset, 0, 0);
 
+        // 플랫폼 속도에 따라 장애물 간격 계산 (속도가 빨라질수록 간격을 넓힘)
+        float obstacleDistance = Mathf.Lerp(minObstacleDistance, maxObstacleDistance, platformSpeed / 20f); // platformSpeed가 20 이상일 때 최대 간격
+
+        // 장애물 스폰 위치 계산 (기존 스폰 위치에서 계산한 간격만큼 오른쪽으로 이동)
+        Vector3 spawnPosition = obstacleSpawnPoints[platformIndex].position + new Vector3(obstacleDistance, 0, 0);
+
+        // 장애물 생성
         GameObject obstacle = Instantiate(randomObstaclePrefab, spawnPosition, Quaternion.identity);
+
+        // 플랫폼에 자식으로 추가
         obstacle.transform.SetParent(platforms[platformIndex].transform);
+
+        // 활성화된 장애물 리스트에 추가
         activeObstacles.Add(obstacle);
     }
 

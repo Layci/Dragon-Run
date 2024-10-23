@@ -4,23 +4,37 @@ using UnityEngine;
 
 public class PlayerControl : MonoBehaviour
 {
+    public float life = 3;
     public float baseJumpPower = 5f;      // 기본 점프 힘
     public float maxJumpPower = 10f;      // 최대 점프 힘
     public float gravityScale = 2f;       // 중력 강도
     public float maxJumpTime = 0.5f;      // 점프 버튼을 누를 수 있는 최대 시간
+    public float invincibleDuration = 2f;  // 히트 지속 시간
+    public float flashInterval = 0.1f;     // 깜빡이는 간격
     public LayerMask groundLayer;         // 바닥으로 설정할 레이어
     private bool isGrounded = false;      // 캐릭터가 바닥에 있는지 여부
     private bool isJumping = false;       // 현재 점프 중인지 여부
     private float jumpHoldTime = 0f;      // 스페이스바를 누르고 있는 시간
+    private SpriteRenderer sr; // 캐릭터의 SpriteRenderer
     private Rigidbody2D rb;
+    private Animator anim;
 
     public Transform groundCheck;         // 플레이어 발 아래 위치 감지용 Transform
     public float groundCheckRadius = 0.2f; // 바닥 체크 반경
+
+    public static PlayerControl instance;
+
+    private void Awake()
+    {
+        instance = this;
+    }
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();  // Rigidbody2D 컴포넌트 가져오기
         rb.gravityScale = gravityScale;    // 중력 강도 설정
+        anim = GetComponent<Animator>();
+        sr = gameObject.GetComponent<SpriteRenderer>();
     }
 
     void Update()
@@ -56,19 +70,69 @@ public class PlayerControl : MonoBehaviour
         }
     }
 
-    // 바닥에 닿으면 다시 점프 가능하게 설정 (이 부분은 Raycast로 대체됨)
-    // void OnCollisionEnter2D(Collision2D collision)
-    // {
-    //     if (collision.gameObject.CompareTag("Ground"))
-    //     {
-    //         isGrounded = true;  // 바닥에 닿으면 다시 점프 가능
-    //     }
-    // }
-
     // 바닥 체크에 사용하는 OverlapCircle 그리기 (디버그용)
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
+    }
+
+    // 플레이어가 장애물에 닿을시
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Obstacle"))
+        {
+            anim.SetTrigger("Player Hit");
+            // 히트 상태 시작
+            StartCoroutine(Invincibility());
+
+            // 플레이어가 데미지를 입었을 때 호출할 함수
+            TakeDamage();
+        }
+    }
+
+    // 플레이어가 데미지를 입었을 때 호출할 함수
+    public void TakeDamage()
+    {
+        life--;  // 목숨 감소
+        UIManager.instance.UpdateLifeImages();  // 목숨 이미지 업데이트
+
+        // 목숨이 0 이하가 되면 사망 처리 (추가적인 사망 로직 구현 가능)
+        if (life <= 0)
+        {
+            Debug.Log("Player is dead");
+            
+        }
+    }
+
+    // 히트 상태 코루틴
+    private IEnumerator Invincibility()
+    {
+        float elapsedTime = 0f;
+        Color originalColor = sr.color;
+
+        // 무적 지속 시간 동안 반복
+        while (elapsedTime < invincibleDuration)
+        {
+            // 알파값을 조절하여 투명하게 만들었다가 다시 원래대로
+            SetAlpha(0.5f);  // 50% 투명
+            yield return new WaitForSeconds(flashInterval);
+
+            SetAlpha(1f);    // 원래 상태로 복원
+            yield return new WaitForSeconds(flashInterval);
+
+            elapsedTime += flashInterval * 2;
+        }
+
+        // 무적 상태 종료 후 원래 색상 복원
+        SetAlpha(1f);
+    }
+
+    // SpriteRenderer의 알파값을 설정하는 함수
+    private void SetAlpha(float alpha)
+    {
+        Color newColor = sr.color;
+        newColor.a = alpha;
+        sr.color = newColor;
     }
 }
