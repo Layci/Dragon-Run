@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour
 {
@@ -15,6 +17,8 @@ public class UIManager : MonoBehaviour
     public float life = 3;                  // 플레이어 목숨
     public Image[] lifeImages;              // 목숨을 나타낼 이미지 배열
     public Text scoreText;                  // 스코어를 나타낼 텍스트
+    public Text gameScoreText;              // 게임오버 패널에 나타낼 텍스트
+    public GameObject gameOverPanel;        // 게임오버시 나타낼 패널
 
     public static UIManager instance;
 
@@ -27,15 +31,21 @@ public class UIManager : MonoBehaviour
         UpdateLifeImages();
 
         instance = this;
+
+        Time.timeScale = 1f;
+        gameOverPanel.SetActive(false);
     }
 
     private void Update()
     {
-        // 스코어를 시간에 비례하여 부드럽게 증가
+        // 스코어를 시간에 비례하여 증가
         score += scoreIncreaseRate * Time.deltaTime;
 
         // 3자리마다 쉼표를 붙인 스코어 UI 업데이트
         scoreText.text = "Score: " + Mathf.FloorToInt(score).ToString("N0");
+
+        // 3자리마다 쉼표를 붙인 스코어 UI 업데이트
+        gameScoreText.text = "Score: " + Mathf.FloorToInt(score).ToString("N0");
 
         // 현재 점수가 기준 이상이면 증가율 올리기
         if (score >= currentThreshold)
@@ -68,5 +78,23 @@ public class UIManager : MonoBehaviour
                 lifeImages[i].enabled = false;  // 비활성화
             }
         }
+    }
+
+    // 게임오버시 실행하는 함수
+    public void GameOver()
+    {
+        Time.timeScale = 0f;
+
+        gameOverPanel.SetActive(true);
+    }
+
+    public void ReStartBtn()
+    {
+        SceneManager.LoadScene("GameScene");
+    }
+
+    public void HomeBtn()
+    {
+        SceneManager.LoadScene("TitleScene");
     }
 }

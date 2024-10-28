@@ -100,8 +100,7 @@ public class PlayerControl : MonoBehaviour
         // 목숨이 0 이하가 되면 사망 처리 (추가적인 사망 로직 구현 가능)
         if (life <= 0)
         {
-            Debug.Log("Player is dead");
-            
+            UIManager.instance.GameOver();
         }
     }
 
