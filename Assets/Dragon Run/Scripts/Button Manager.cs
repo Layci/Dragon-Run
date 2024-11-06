@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -9,6 +10,8 @@ public class ButtonManager : MonoBehaviour
 {
     public GameObject helpPanel;
     public GameObject pausePanel;
+    bool pause = false;
+    bool helpView = false;
 
     // Start is called before the first frame update
     void Start()
@@ -26,6 +29,21 @@ public class ButtonManager : MonoBehaviour
         }
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape) && !helpView)
+        {
+            if (!pause)
+            {
+                PauseBtn();
+            }
+            else if (pause)
+            {
+                StartingBtn();
+            }
+        }
+    }
+
     public void StartBtn()
     {
         SceneManager.LoadScene("GameScene");
@@ -34,6 +52,7 @@ public class ButtonManager : MonoBehaviour
     public void HelpBtn()
     {
         helpPanel.SetActive(true);
+        helpView = true;
     }
 
     public void ExitBtn()
@@ -48,17 +67,22 @@ public class ButtonManager : MonoBehaviour
     public void CancelHelp()
     {
         helpPanel.SetActive(false);
+        helpView = false;
     }
 
     public void PauseBtn()
     {
         pausePanel.SetActive(true);
         Time.timeScale = 0f;
+        pause = !pause;
+        // 버튼을 누른 후 EventSystem의 현재 선택된 객체를 null로 설정
+        EventSystem.current.SetSelectedGameObject(null);
     }
 
     public void StartingBtn()
     {
         pausePanel.SetActive(false);
         Time.timeScale = 1.0f;
+        pause = !pause;
     }
 }

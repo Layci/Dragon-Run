@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class PlayerControl : MonoBehaviour
 {
@@ -9,13 +10,16 @@ public class PlayerControl : MonoBehaviour
     public float maxJumpPower = 10f;      // 최대 점프 힘
     public float gravityScale = 2f;       // 중력 강도
     public float maxJumpTime = 0.5f;      // 점프 버튼을 누를 수 있는 최대 시간
-    public float invincibleDuration = 2f;  // 히트 지속 시간
-    public float flashInterval = 0.1f;     // 깜빡이는 간격
+    public float invincibleDuration = 2f; // 히트 지속 시간
+    public float flashInterval = 0.1f;    // 깜빡이는 간격
+    public float bulletSpeed = 1f;        // 불 스피드
     public LayerMask groundLayer;         // 바닥으로 설정할 레이어
+    public GameObject fireBullet;         // 플레이어가 쏠 불
+    public GameObject bulletSpawnpoint;   // 불이 나올 스폰포인트
     private bool isGrounded = false;      // 캐릭터가 바닥에 있는지 여부
     private bool isJumping = false;       // 현재 점프 중인지 여부
     private float jumpHoldTime = 0f;      // 스페이스바를 누르고 있는 시간
-    private SpriteRenderer sr; // 캐릭터의 SpriteRenderer
+    private SpriteRenderer sr;            // 캐릭터의 SpriteRenderer
     private Rigidbody2D rb;
     private Animator anim;
 
@@ -67,6 +71,17 @@ public class PlayerControl : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.Space))
         {
             isJumping = false;  // 점프 상태 종료
+        }
+
+        if (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.Mouse0))
+        {
+            // 현재 클릭한 대상이 UI 요소인지 확인
+            if (!EventSystem.current.IsPointerOverGameObject())
+            {
+                GameObject bullet = Instantiate(fireBullet, bulletSpawnpoint.transform.position, bulletSpawnpoint.transform.rotation);
+                Rigidbody2D bulletRD = bullet.GetComponent<Rigidbody2D>();
+                bulletRD.AddForce(transform.right * bulletSpeed, ForceMode2D.Impulse);
+            }
         }
     }
 

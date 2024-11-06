@@ -7,6 +7,8 @@ TagManager:
   - Ground
   - Prop
   - Obstacle
+  - Bullet
+  - Wall
   layers:
   - Default
   - TransparentFX

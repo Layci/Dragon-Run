@@ -14,6 +14,10 @@ public class UIManager : MonoBehaviour
     public float thresholdMultiplier = 2f;  // 다음 기준으로 적용할 배수
     private float currentThreshold;         // 현재 점수 기준
     private float timeSinceLastUpdate = 0f; // 마지막 스코어 업데이트 이후 경과 시간
+    public Image cooldownImage;             // 쿨타임을 표현할 Image 컴포넌트
+    public float cooldownTime = 5f;         // 쿨타임 지속 시간
+    private float cooldownTimer = 0f;
+    private bool isCooldown = false;
     public float life = 3;                  // 플레이어 목숨
     public Image[] lifeImages;              // 목숨을 나타낼 이미지 배열
     public Text scoreText;                  // 스코어를 나타낼 텍스트
@@ -34,6 +38,8 @@ public class UIManager : MonoBehaviour
 
         Time.timeScale = 1f;
         gameOverPanel.SetActive(false);
+
+        StartCooldown();
     }
 
     private void Update()
@@ -51,6 +57,21 @@ public class UIManager : MonoBehaviour
         if (score >= currentThreshold)
         {
             IncreaseScoreRate();    
+        }
+
+        // 쿨타임이 활성화된 경우 타이머 업데이트
+        if (isCooldown)
+        {
+            cooldownTimer -= Time.deltaTime;
+            cooldownImage.fillAmount = cooldownTimer / cooldownTime;
+
+            // 쿨타임이 완료되면 초기화
+            if (cooldownTimer <= 0f)
+            {
+                isCooldown = false;
+                cooldownImage.fillAmount = 0f;  // 이미지 초기화
+                Debug.Log("쿨타임끝");
+            }
         }
     }
 
@@ -77,6 +98,18 @@ public class UIManager : MonoBehaviour
             {
                 lifeImages[i].enabled = false;  // 비활성화
             }
+        }
+    }
+
+    // 쿨타임 시작 함수
+    public void StartCooldown()
+    {
+        if (!isCooldown)
+        {
+            isCooldown = true;
+            cooldownTimer = cooldownTime;
+            cooldownImage.fillAmount = 1f;  // 이미지 전체 채우기
+            Debug.Log("쿨타임 시작");
         }
     }
 
