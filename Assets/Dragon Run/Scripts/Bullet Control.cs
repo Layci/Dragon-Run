@@ -9,6 +9,7 @@ public class BulletControl : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Obstacle"))
         {
+            PlayerControl.instance.FireHit();
             Destroy(collision.gameObject);
             Destroy(gameObject);
         }

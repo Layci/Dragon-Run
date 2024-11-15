@@ -17,7 +17,7 @@ public class UIManager : MonoBehaviour
     public Image cooldownImage;             // 쿨타임을 표현할 Image 컴포넌트
     public float cooldownTime = 5f;         // 쿨타임 지속 시간
     private float cooldownTimer = 0f;
-    private bool isCooldown = false;
+    public bool isCooldown = false;
     public float life = 3;                  // 플레이어 목숨
     public Image[] lifeImages;              // 목숨을 나타낼 이미지 배열
     public Text scoreText;                  // 스코어를 나타낼 텍스트
@@ -70,6 +70,7 @@ public class UIManager : MonoBehaviour
             {
                 isCooldown = false;
                 cooldownImage.fillAmount = 0f;  // 이미지 초기화
+                PlayerControl.instance.isFire = true;
                 Debug.Log("쿨타임끝");
             }
         }

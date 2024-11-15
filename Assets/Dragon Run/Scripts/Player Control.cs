@@ -16,12 +16,15 @@ public class PlayerControl : MonoBehaviour
     public LayerMask groundLayer;         // 바닥으로 설정할 레이어
     public GameObject fireBullet;         // 플레이어가 쏠 불
     public GameObject bulletSpawnpoint;   // 불이 나올 스폰포인트
+    public AudioClip[] audioClips;        // 효과음 리스트
     private bool isGrounded = false;      // 캐릭터가 바닥에 있는지 여부
     private bool isJumping = false;       // 현재 점프 중인지 여부
+    public bool isFire = false;           // 플레이어 공격 가능 여부
     private float jumpHoldTime = 0f;      // 스페이스바를 누르고 있는 시간
     private SpriteRenderer sr;            // 캐릭터의 SpriteRenderer
     private Rigidbody2D rb;
     private Animator anim;
+    AudioSource audioSource;
 
     public Transform groundCheck;         // 플레이어 발 아래 위치 감지용 Transform
     public float groundCheckRadius = 0.2f; // 바닥 체크 반경
@@ -39,6 +42,7 @@ public class PlayerControl : MonoBehaviour
         rb.gravityScale = gravityScale;    // 중력 강도 설정
         anim = GetComponent<Animator>();
         sr = gameObject.GetComponent<SpriteRenderer>();
+        audioSource = GetComponent<AudioSource>();
     }
 
     void Update()
@@ -52,6 +56,9 @@ public class PlayerControl : MonoBehaviour
             isJumping = true;
             jumpHoldTime = 0f;  // 점프 시간 초기화
             rb.velocity = new Vector2(rb.velocity.x, baseJumpPower);  // 즉시 기본 점프 적용
+            AudioClip audio = audioClips[0];
+            audioSource.clip = audio;
+            audioSource.Play();
         }
 
         // 점프 중일 때, 점프 키를 누르고 있는 동안 점프 힘을 증가시킴
@@ -73,16 +80,33 @@ public class PlayerControl : MonoBehaviour
             isJumping = false;  // 점프 상태 종료
         }
 
-        if (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.Mouse0))
+        if (isFire)
         {
-            // 현재 클릭한 대상이 UI 요소인지 확인
-            if (!EventSystem.current.IsPointerOverGameObject())
+            if (Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.Mouse0))
             {
-                GameObject bullet = Instantiate(fireBullet, bulletSpawnpoint.transform.position, bulletSpawnpoint.transform.rotation);
-                Rigidbody2D bulletRD = bullet.GetComponent<Rigidbody2D>();
-                bulletRD.AddForce(transform.right * bulletSpeed, ForceMode2D.Impulse);
+                // 현재 클릭한 대상이 UI 요소인지 확인
+                if (!EventSystem.current.IsPointerOverGameObject())
+                {
+                    GameObject bullet = Instantiate(fireBullet, bulletSpawnpoint.transform.position, bulletSpawnpoint.transform.rotation);
+                    Rigidbody2D bulletRD = bullet.GetComponent<Rigidbody2D>();
+                    bulletRD.AddForce(transform.right * bulletSpeed, ForceMode2D.Impulse);
+                    UIManager.instance.StartCooldown();
+                    isFire = false;
+
+                    AudioClip audio = audioClips[2];
+                    audioSource.clip = audio;
+                    audioSource.Play();
+                }
             }
         }
+    }
+
+    // 불이 장애물에 닿을시 소리 출력
+    public void FireHit()
+    {
+        AudioClip audio = audioClips[3];
+        audioSource.clip = audio;
+        audioSource.Play();
     }
 
     // 바닥 체크에 사용하는 OverlapCircle 그리기 (디버그용)
@@ -100,6 +124,10 @@ public class PlayerControl : MonoBehaviour
             anim.SetTrigger("Player Hit");
             // 히트 상태 시작
             StartCoroutine(Invincibility());
+
+            AudioClip audio = audioClips[1];
+            audioSource.clip = audio;
+            audioSource.Play();
 
             // 플레이어가 데미지를 입었을 때 호출할 함수
             TakeDamage();
